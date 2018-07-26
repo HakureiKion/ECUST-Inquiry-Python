@@ -12,14 +12,15 @@ CHANGELOG
 1.5:
     优化程序逻辑
     引入函数
+1.6:
+    去除不必要的OCR相关import
+    将学年学期选择转为函数xnxq()
 '''
 
 import requests
 from PIL import Image
-import pytesseract
 import base64
 from bs4 import BeautifulSoup
-from aip import AipOcr
 
 print('\n============================================')
 print('\n　华东理工大学综合教务管理系统自动成绩查询\n')
@@ -36,6 +37,31 @@ def auth():
     password = str(password,'utf-8')
     # 转回Unicode
     return [username, password]
+
+def xnxq():
+    try:
+        while True:
+            global yr
+            global yr2
+            global sm
+            yr = int(input('请输入学年的起始年（如2017-2018学年，输入2017即可）：'))
+            if yr < 2000 or yr > 9999:
+                print('年份输对了吗？')
+            else:
+                break
+        yr2 = yr + 1
+        yr = str(yr)
+        yr2 = str(yr2)
+        while True:
+            sm = str(input('请输入学期数（1或2）：'))
+            if sm == '1' or sm == '2':
+                break
+            else:
+                print('一学年只有两学期吧？')
+        xnxq = yr + '-' + yr2 + '-' + sm
+        return xnxq
+    except:
+            print('好好打字！')
 
 def login():
     global headers
@@ -124,29 +150,7 @@ def ScoreInq():
 ##    MainUrl = 'http://inquiry.ecust.edu.cn/jsxsd/kscj/cjcx_query'
 ##    r = requests.get(MainUrl, headers = headers, data = postData, cookies=r.cookies)
     InqUrl = 'http://inquiry.ecust.edu.cn/jsxsd/kscj/cjcx_list'
-    try:
-        while True:
-            yr = int(input('请输入学年的起始年（如2017-2018学年，输入2017即可）：'))
-            if yr < 2000 or yr > 9999:
-                print('年份输对了吗？')
-            else:
-                break
-        yr2 = yr + 1
-        yr = str(yr)
-        yr2 = str(yr2)
-
-        while True:
-            sm = str(input('请输入学期数（1或2）：'))
-            if sm == '1' or sm == '2':
-                break
-            else:
-                print('一学年只有两学期吧？')
-        
-        kksj = yr + '-' + yr2 + '-' + sm
-    except:
-            print('好好打字！')
-
-    InqUrl = InqUrl + '?kksj=' + kksj + '&kcxz=&kcmc=&xsfs=all'
+    InqUrl = InqUrl + '?kksj=' + xnxq() + '&kcxz=&kcmc=&xsfs=all'
 
     print('\n==============================')
     print('\n查询' + yr + '-' + yr2 + '学年第' + sm + '学期的成绩\n')
@@ -203,6 +207,33 @@ def ScoreInq():
     print('输入1退出成绩查询')
     op = input('\n请输入：')
     return op
+
+def CourseInq():
+    import xlwt
+    InqUrl = 'http://inquiry.ecust.edu.cn/jsxsd/xskb/xskb_list.do'
+    xnxq = xnxq()
+    InqUrl = InqUrl + '?xnxq01id=' + xnxq
+
+    print('\n==============================')
+    print('\n查询' + yr + '-' + yr2 + '学年第' + sm + '学期的成绩\n')
+    print('================================')
+
+    resp3 = requests.get(InqUrl, headers = headers, cookies = cookie)
+    data=resp3.text
+    # 查课表
+
+##    soup = BeautifulSoup(data, "html.parser")
+##    tables = soup.find_all('table')
+##
+##    tab = tables[1]
+##    print('\n【课程表】\n')
+##    tds = tab.find_all('td')
+##    # 找到课程表的第一格
+##    index = 0 
+##    while index <= len(tds):
+##        print(tds[index].getText()) # 代码未完成
+##        index += 1
+##    此部分代码未完成
 
 # 以下是主程序
 
